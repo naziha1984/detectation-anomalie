@@ -13,11 +13,11 @@ echo L'application sera accessible sur: http://localhost:5000
 echo.
 echo Comptes de test disponibles:
 echo - admin / admin123 (administrateur)
-echo - john_doe / password123
-echo - jane_smith / password123
-echo - mike_wilson / password123
-echo - sarah_jones / password123
-echo - alex_brown / password123
+echo - kenza_douiri / password123
+echo - fatima_gatt / password123
+echo - naziha_jr / password123
+echo - oubey_boubakri / password123
+echo - med_ali / password123
 echo.
 
 python app_mongodb.py

@@ -32,7 +32,7 @@ class Config:
     LOG_FILE = os.environ.get('LOG_FILE', 'logs/app.log')
     
     # Configuration de l'application
-    APP_NAME = 'E-Commerce IA'
+    APP_NAME = 'SmartShopPlus'
     APP_VERSION = '1.0.0'
     APP_DESCRIPTION = 'Site e-commerce avec système de recommandation intelligent'
 

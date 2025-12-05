@@ -6,9 +6,6 @@ Ce module implémente un système de recommandation hybride utilisant :
 - Filtrage collaboratif basé sur les produits
 - Recommandations populaires
 - Analyse de similarité
-
-Auteur: Développeur Senior Python Full Stack
-Date: 2024
 """
 
 import logging

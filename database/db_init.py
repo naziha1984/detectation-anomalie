@@ -149,37 +149,37 @@ def create_sample_users():
     users_data = [
         {
             'username': 'admin',
-            'email': 'admin@ecommerce.com',
+            'email': 'admin@smartshopplus.com',
             'password': 'admin123',
             'is_admin': True
         },
         {
-            'username': 'john_doe',
-            'email': 'john.doe@email.com',
+            'username': 'kenza_douiri',
+            'email': 'kenza_douiri@email.com',
             'password': 'password123',
             'is_admin': False
         },
         {
-            'username': 'jane_smith',
-            'email': 'jane.smith@email.com',
+            'username': 'fatima_gatt',
+            'email': 'fatima.gatt@email.com',
             'password': 'password123',
             'is_admin': False
         },
         {
-            'username': 'mike_wilson',
-            'email': 'mike.wilson@email.com',
+            'username': 'naziha_jr',
+            'email': 'naziha.jr@email.com',
             'password': 'password123',
             'is_admin': False
         },
         {
-            'username': 'sarah_jones',
-            'email': 'sarah.jones@email.com',
+            'username': 'oubey_boubakri',
+            'email': 'oubey.boubakri@email.com',
             'password': 'password123',
             'is_admin': False
         },
         {
-            'username': 'alex_brown',
-            'email': 'alex.brown@email.com',
+            'username': 'med_ali',
+            'email': 'med.abdelwahab@email.com',
             'password': 'password123',
             'is_admin': False
         }
@@ -330,10 +330,10 @@ if __name__ == '__main__':
         print("python app.py")
         print("\nComptes de test disponibles:")
         print("- admin / admin123 (administrateur)")
-        print("- john_doe / password123")
-        print("- jane_smith / password123")
-        print("- mike_wilson / password123")
-        print("- sarah_jones / password123")
-        print("- alex_brown / password123")
+        print("- ahmed_ali / password123")
+        print("- fatima_gatt / password123")
+        print("- mohamed_benali / password123")
+        print("- amina_trabelsi / password123")
+        print("- khalid_omari / password123")
         print("="*50)
 

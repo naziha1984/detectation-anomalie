@@ -134,11 +134,11 @@ def main():
     print("🌐 L'application sera accessible sur: http://localhost:5000")
     print("👤 Comptes de test disponibles:")
     print("   - admin / admin123 (administrateur)")
-    print("   - john_doe / password123")
-    print("   - jane_smith / password123")
-    print("   - mike_wilson / password123")
-    print("   - sarah_jones / password123")
-    print("   - alex_brown / password123")
+    print("   - kenza_douiri / password123")
+    print("   - fatima_gatt / password123")
+    print("   - naziha_jr / password123")
+    print("   - oubey_boubakri / password123")
+    print("   - med_ali / password123")
     print("="*60)
     
     # Démarrage de l'application

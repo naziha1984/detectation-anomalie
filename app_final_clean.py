@@ -315,15 +315,15 @@ def create_sample_data():
             users_data = [
                 {
                     'username': 'admin',
-                    'email': 'admin@ecommerce.com',
+                    'email': 'admin@smartshopplus.com',
                     'password_hash': generate_password_hash('admin123'),
                     'created_at': datetime.utcnow(),
                     'is_admin': True
                 },
                 {
-                    'username': 'test',
-                    'email': 'test@ecommerce.com',
-                    'password_hash': generate_password_hash('test123'),
+                    'username': 'kenza_douiri',
+                    'email': 'kenza_douiri@email.com',
+                    'password_hash': generate_password_hash('password123'),
                     'created_at': datetime.utcnow(),
                     'is_admin': False
                 }

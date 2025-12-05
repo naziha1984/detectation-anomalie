@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}E-Commerce IA{% endblock %}</title>
+    <title>{% block title %}SmartShopPlus{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,9 +18,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-shopping-cart me-2"></i>
-                E-Commerce IA
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartShopPlus" height="40" class="me-2">
+                <span>SmartShopPlus</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -116,7 +116,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5><i class="fas fa-shopping-cart me-2"></i>E-Commerce IA</h5>
+                    <h5><img src="{{ url_for('static', filename='images/logo.png') }}" alt="SmartShopPlus" height="30" class="me-2">SmartShopPlus</h5>
                     <p class="mb-0">Votre boutique en ligne intelligente avec recommandations personnalisées.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
@@ -124,7 +124,7 @@
                         <i class="fas fa-code me-1"></i>
                         Développé avec Python Flask & Intelligence Artificielle
                     </p>
-                    <small class="text-muted">© 2024 E-Commerce IA. Tous droits réservés.</small>
+                    <small class="text-muted">© 2024 SmartShopPlus. Tous droits réservés.</small>
                 </div>
             </div>
         </div>

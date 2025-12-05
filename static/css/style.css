@@ -42,13 +42,22 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: var(--gradient-primary);
+    background: white !important;
     border-radius: 1rem;
     box-shadow: var(--shadow-lg);
+    color: #764ba2 !important;
 }
 
 .hero-section h1 {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #764ba2 !important;
+}
+
+.hero-section .lead {
+    color: #764ba2 !important;
+}
+
+.text-purple {
+    color: #764ba2 !important;
 }
 
 /* Cards */

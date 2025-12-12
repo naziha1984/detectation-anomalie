@@ -1,0 +1,27 @@
+======================================================================
+RAPPORT D'ANALYSE DBSCAN - DÉTECTION D'ANOMALIES MÉDICALES
+======================================================================
+
+RÉSUMÉ GÉNÉRAL
+----------------------------------------------------------------------
+Nombre total de patients analysés: 500
+Patients normaux (clusters): 140 (28.00%)
+Anomalies détectées: 360 (72.00%)
+Nombre de clusters identifiés: 1
+
+STATISTIQUES DES ANOMALIES
+----------------------------------------------------------------------
+blood_pressure_systolic: moyenne=126.52, écart-type=24.20
+blood_pressure_diastolic: moyenne=82.77, écart-type=14.06
+temperature_c: moyenne=37.26, écart-type=0.95
+heart_rate_bpm: moyenne=75.90, écart-type=16.02
+
+INTERPRÉTATION
+----------------------------------------------------------------------
+Les patients marqués comme anomalies (cluster = -1) présentent des
+signes vitaux qui s'écartent significativement de la population normale.
+Ces patients nécessitent une attention médicale immédiate.
+
+Les clusters identifiés représentent des groupes de patients avec
+des profils de signes vitaux similaires, ce qui peut aider à
+la catégorisation et au suivi médical.

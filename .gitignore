@@ -41,11 +41,17 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Données générées (optionnel - décommenter si vous ne voulez pas versionner les résultats)
-# data/*.csv
-# data/*.png
-# data/*.txt
-# data/*.html
+# Données générées (ne pas versionner les résultats)
+data/*.png
+data/*.html
+data/*.txt
+data/*_with_clusters.csv
+data/*_anomalies.csv
+data/report.html
+data/summary_report.txt
+
+# Rapports générés
+RAPPORT_PROFESSIONNEL.html
 
 # Fichiers temporaires
 *.tmp
@@ -62,4 +68,34 @@ desktop.ini
 
 # Logs
 *.log
+*.log.*
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Fichiers système Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# Fichiers système macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Fichiers système Linux
+.directory
+.Trash-*
+
+# Streamlit
+.streamlit/
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+.venv/
 

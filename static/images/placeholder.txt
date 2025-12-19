@@ -1,3 +1,0 @@
-# Images de démonstration
-# Ce fichier indique que les images sont des placeholders
-# Dans un vrai projet, vous auriez de vraies images ici

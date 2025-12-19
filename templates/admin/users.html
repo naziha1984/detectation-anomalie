@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Utilisateurs - SmartShopPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-users text-primary me-2"></i>
+                    Gestion des Utilisateurs
+                </h1>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ total_users }}</h3>
+                            <p class="card-text">Total Utilisateurs</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ total_admins }}</h3>
+                            <p class="card-text">Administrateurs</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-shield fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ total_regular_users }}</h3>
+                            <p class="card-text">Utilisateurs Réguliers</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des utilisateurs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Liste des Utilisateurs ({{ users|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Nom d'utilisateur</th>
+                                        <th>Email</th>
+                                        <th>Type</th>
+                                        <th>Date de création</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <strong>{{ user.username }}</strong>
+                                        </td>
+                                        <td>{{ user.email if user.email else 'N/A' }}</td>
+                                        <td>
+                                            {% if user.is_admin %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-user-shield me-1"></i>Administrateur
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-user me-1"></i>Utilisateur
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.created_at_formatted }}</td>
+                                        <td>
+                                            <span class="badge bg-success">Actif</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Aucun utilisateur trouvé dans la base de données.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtres Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary" onclick="filterUsers('all')">
+                            <i class="fas fa-users me-1"></i>Tous ({{ total_users }})
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="filterUsers('admin')">
+                            <i class="fas fa-user-shield me-1"></i>Admins ({{ total_admins }})
+                        </button>
+                        <button class="btn btn-outline-success" onclick="filterUsers('user')">
+                            <i class="fas fa-user me-1"></i>Utilisateurs ({{ total_regular_users }})
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterUsers(type) {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const badge = row.querySelector('.badge');
+        if (type === 'all') {
+            row.style.display = '';
+        } else if (type === 'admin') {
+            row.style.display = badge && badge.textContent.includes('Administrateur') ? '' : 'none';
+        } else if (type === 'user') {
+            row.style.display = badge && badge.textContent.includes('Utilisateur') ? '' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}
+

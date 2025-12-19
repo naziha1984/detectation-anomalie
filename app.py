@@ -4,12 +4,14 @@ E-COMMERCE IA - APPLICATION FINALE PROPRE
 Version complète et fonctionnelle avec toutes les fonctionnalités
 """
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory, Response
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import logging
 import os
+import csv
+import io
 from bson import ObjectId
 
 # Configuration du logging
@@ -31,6 +33,7 @@ def test_mongodb_connection():
         return True
     except Exception as e:
         logger.error(f"Erreur connexion MongoDB: {e}")
+        logger.error("Assurez-vous que MongoDB est démarré. Utilisez 'mongod' ou le script start_mongodb.bat")
         return False
 
 def get_products():
@@ -46,6 +49,70 @@ def get_products():
         return products
     except Exception as e:
         logger.error(f"Erreur chargement produits: {e}")
+        return []
+
+def get_most_purchased_products(limit=8):
+    """Récupère les produits les plus achetés basés sur l'historique des achats."""
+    try:
+        # Récupérer tous les achats
+        purchases = list(mongo.db.purchases.find({}))
+        
+        if not purchases:
+            logger.info("Aucun achat trouvé pour les recommandations")
+            return []
+        
+        # Compter les achats par produit
+        product_counts = {}
+        
+        for purchase in purchases:
+            if 'items' in purchase and purchase['items']:
+                for item in purchase['items']:
+                    product_id = item.get('product_id')
+                    quantity = item.get('quantity', 1)
+                    
+                    if product_id:
+                        if product_id not in product_counts:
+                            product_counts[product_id] = {
+                                'total_quantity': 0,
+                                'purchase_count': 0
+                            }
+                        product_counts[product_id]['total_quantity'] += quantity
+                        product_counts[product_id]['purchase_count'] += 1
+        
+        if not product_counts:
+            return []
+        
+        # Trier par nombre total d'achats (quantité totale)
+        sorted_products = sorted(
+            product_counts.items(),
+            key=lambda x: x[1]['total_quantity'],
+            reverse=True
+        )
+        
+        # Récupérer les IDs des produits les plus achetés
+        top_product_ids = [product_id for product_id, _ in sorted_products[:limit]]
+        
+        # Récupérer les détails complets des produits
+        products_collection = mongo.db.product
+        most_purchased = []
+        
+        for product_id in top_product_ids:
+            try:
+                product = products_collection.find_one({'_id': ObjectId(product_id)})
+                if product and product.get('is_active', True):
+                    product['id'] = str(product['_id'])
+                    product['purchase_count'] = product_counts[product_id]['purchase_count']
+                    product['total_quantity'] = product_counts[product_id]['total_quantity']
+                    most_purchased.append(product)
+            except Exception as e:
+                logger.warning(f"Produit {product_id} non trouvé ou invalide: {e}")
+                continue
+        
+        logger.info(f"Produits les plus achetés récupérés: {len(most_purchased)} produits")
+        return most_purchased
+        
+    except Exception as e:
+        logger.error(f"Erreur récupération produits les plus achetés: {e}")
         return []
 
 def create_sample_data():
@@ -405,10 +472,24 @@ def index():
             create_sample_data()
             products = get_products()
         
-        # Recommandations pour utilisateur connecté
+        # Recommandations basées sur les produits les plus achetés
         recommendations = []
-        if 'user_id' in session and products:
-            recommendations = products[:4]
+        if 'user_id' in session:
+            # Récupérer les produits les plus achetés
+            most_purchased = get_most_purchased_products(limit=8)
+            
+            if most_purchased:
+                recommendations = most_purchased
+            else:
+                # Fallback: utiliser les premiers produits si aucun achat
+                recommendations = products[:4] if products else []
+        else:
+            # Pour les utilisateurs non connectés, afficher les produits les plus achetés aussi
+            most_purchased = get_most_purchased_products(limit=8)
+            if most_purchased:
+                recommendations = most_purchased
+            else:
+                recommendations = products[:4] if products else []
         
         return render_template('index.html', products=products, recommendations=recommendations)
         
@@ -421,19 +502,42 @@ def index():
 def login():
     """Connexion utilisateur."""
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        user = mongo.db.users.find_one({'username': username})
-        
-        if user and check_password_hash(user['password_hash'], password):
-            session['user_id'] = str(user['_id'])
-            session['username'] = user['username']
-            session['is_admin'] = user.get('is_admin', False)
-            flash('Connexion réussie !', 'success')
-            return redirect(url_for('index'))
-        else:
-            flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
+            
+            if not username or not password:
+                flash('Veuillez remplir tous les champs', 'error')
+                return render_template('login.html')
+            
+            # Vérification de la connexion MongoDB
+            if not test_mongodb_connection():
+                flash('Erreur de connexion à la base de données. Veuillez réessayer.', 'error')
+                logger.error("Erreur: MongoDB non connecté")
+                return render_template('login.html')
+            
+            user = mongo.db.users.find_one({'username': username})
+            
+            if not user:
+                flash('Nom d\'utilisateur incorrect', 'error')
+                logger.warning(f"Tentative de connexion avec un utilisateur inexistant: {username}")
+                return render_template('login.html')
+            
+            # Vérification du mot de passe
+            if check_password_hash(user['password_hash'], password):
+                session['user_id'] = str(user['_id'])
+                session['username'] = user['username']
+                session['is_admin'] = user.get('is_admin', False)
+                flash('Connexion réussie !', 'success')
+                logger.info(f"Utilisateur connecté: {username}")
+                return redirect(url_for('index'))
+            else:
+                flash('Mot de passe incorrect', 'error')
+                logger.warning(f"Mot de passe incorrect pour l'utilisateur: {username}")
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la connexion: {e}", exc_info=True)
+            flash('Une erreur est survenue lors de la connexion. Veuillez réessayer.', 'error')
     
     return render_template('login.html')
 
@@ -674,14 +778,23 @@ def purchase_history():
         return redirect(url_for('login'))
     
     try:
+        # Vérification de la connexion MongoDB
+        if not test_mongodb_connection():
+            flash('Erreur de connexion à la base de données. Veuillez réessayer.', 'error')
+            logger.error("MongoDB non connecté lors de l'accès à l'historique")
+            return render_template('purchase_history.html', purchases=[])
+        
         # Récupération des achats avec conversion des ObjectId
-        purchases = list(mongo.db.purchases.find({'user_id': session['user_id']}).sort('created_at', -1))
+        user_id = session['user_id']
+        logger.info(f"Récupération de l'historique pour l'utilisateur: {user_id}")
+        
+        purchases = list(mongo.db.purchases.find({'user_id': user_id}).sort('created_at', -1))
         
         # Conversion des ObjectId en string pour chaque achat
         for purchase in purchases:
             purchase['id'] = str(purchase['_id'])
             # Conversion des ObjectId des items si nécessaire
-            if 'items' in purchase:
+            if 'items' in purchase and purchase['items']:
                 for item in purchase['items']:
                     if '_id' in item:
                         item['id'] = str(item['_id'])
@@ -700,8 +813,107 @@ def purchase_history():
         logger.error(f"Erreur historique: {e}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
-        flash('Erreur lors du chargement de l\'historique', 'error')
-        return redirect(url_for('index'))
+        flash(f'Erreur lors du chargement de l\'historique: {str(e)}', 'error')
+        # Ne pas rediriger, mais afficher la page vide avec l'erreur
+        return render_template('purchase_history.html', purchases=[])
+
+@app.route('/purchase_history/download')
+def download_purchase_history():
+    """Télécharger l'historique des achats en CSV."""
+    if 'user_id' not in session:
+        flash('Vous devez être connecté pour télécharger votre historique', 'warning')
+        return redirect(url_for('login'))
+    
+    try:
+        # Vérification de la connexion MongoDB
+        if not test_mongodb_connection():
+            flash('Erreur de connexion à la base de données. Veuillez réessayer.', 'error')
+            return redirect(url_for('purchase_history'))
+        
+        # Récupération des achats
+        purchases = list(mongo.db.purchases.find({'user_id': session['user_id']}).sort('created_at', -1))
+        
+        if not purchases:
+            flash('Aucun achat à télécharger', 'warning')
+            return redirect(url_for('purchase_history'))
+        
+        # Création du fichier CSV en mémoire
+        output = io.StringIO()
+        writer = csv.writer(output, delimiter=';')
+        
+        # En-têtes CSV
+        writer.writerow([
+            'Numéro de commande',
+            'Date de commande',
+            'Produit',
+            'Quantité',
+            'Prix unitaire (DT)',
+            'Sous-total (DT)',
+            'Total commande (DT)',
+            'Statut'
+        ])
+        
+        # Données des achats
+        for idx, purchase in enumerate(purchases, 1):
+            purchase_date = purchase.get('created_at', datetime.utcnow())
+            if isinstance(purchase_date, datetime):
+                date_str = purchase_date.strftime('%d/%m/%Y %H:%M')
+            else:
+                date_str = str(purchase_date)
+            
+            total = purchase.get('total', 0)
+            status = purchase.get('status', 'Complétée')
+            
+            # Si la commande contient des items
+            if 'items' in purchase and purchase['items']:
+                for item in purchase['items']:
+                    product_name = item.get('product_name', 'Produit inconnu')
+                    quantity = item.get('quantity', 1)
+                    price = item.get('price', 0)
+                    subtotal = price * quantity
+                    
+                    writer.writerow([
+                        idx,
+                        date_str,
+                        product_name,
+                        quantity,
+                        f"{price:.2f}",
+                        f"{subtotal:.2f}",
+                        f"{total:.2f}",
+                        status
+                    ])
+            else:
+                # Commande sans items détaillés
+                writer.writerow([
+                    idx,
+                    date_str,
+                    'Détails non disponibles',
+                    '',
+                    '',
+                    '',
+                    f"{total:.2f}",
+                    status
+                ])
+        
+        # Préparation de la réponse
+        output.seek(0)
+        response = Response(
+            output.getvalue().encode('utf-8-sig'),  # UTF-8 avec BOM pour Excel
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename=historique_achats_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+            }
+        )
+        
+        logger.info(f"Historique téléchargé: {len(purchases)} achats exportés")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Erreur téléchargement historique: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        flash('Erreur lors du téléchargement de l\'historique', 'error')
+        return redirect(url_for('purchase_history'))
 
 @app.route('/api/cart/count')
 def cart_count():
@@ -881,9 +1093,47 @@ def admin_delete_product(product_id):
     
     return redirect(url_for('admin_products'))
 
+@app.route('/admin/users')
+def admin_users():
+    """Gestion des utilisateurs - Liste des utilisateurs et admins."""
+    if 'user_id' not in session or not session.get('is_admin', False):
+        flash('Accès refusé. Droits administrateur requis.', 'error')
+        return redirect(url_for('index'))
+    
+    try:
+        # Récupérer tous les utilisateurs
+        users = list(mongo.db.users.find({}).sort('created_at', -1))
+        
+        # Convertir les ObjectId en string et formater les dates
+        for user in users:
+            user['id'] = str(user['_id'])
+            if 'created_at' in user and user['created_at']:
+                if isinstance(user['created_at'], datetime):
+                    user['created_at_formatted'] = user['created_at'].strftime('%d/%m/%Y %H:%M')
+                else:
+                    user['created_at_formatted'] = 'N/A'
+            else:
+                user['created_at_formatted'] = 'N/A'
+        
+        # Compter les admins et utilisateurs
+        total_users = len(users)
+        total_admins = sum(1 for user in users if user.get('is_admin', False))
+        total_regular_users = total_users - total_admins
+        
+        return render_template('admin/users.html', 
+                             users=users,
+                             total_users=total_users,
+                             total_admins=total_admins,
+                             total_regular_users=total_regular_users)
+        
+    except Exception as e:
+        logger.error(f"Erreur chargement utilisateurs: {e}")
+        flash('Erreur lors du chargement de la liste des utilisateurs', 'error')
+        return redirect(url_for('admin_dashboard'))
+
 if __name__ == '__main__':
     print("="*60)
-    print("E-COMMERCE IA - VERSION FINALE PROPRE")
+    print("E-COMMERCE IA ")
     print("="*60)
     print("Application accessible sur: http://localhost:5000")
     print("Comptes de test:")
